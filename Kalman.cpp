@@ -42,7 +42,9 @@ float Kalman::calculate(int gyroReading, float accTheta)
 	 * Update the predicted angle based on the previous
 	 * angle and the new gyroscope reading.
 	 */
-	angle = angle - (bias - gyroReading) * DT * GYRO_SCALE;
+	//GYRO_SCALE and DT are from mbed and defs.h, they are defined as 1 in Kalman.h and we should probs figure out
+	//what they do.
+	angle = angle - (bias - gyroReading) * DT  * GYRO_SCALE;
 
 	/*
 	 * angle_err is the actual error between the predicted
