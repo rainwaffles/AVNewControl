@@ -26,8 +26,8 @@ private:
 	P[2][2],    // covariance
 	E,          // error estimate
 	gain[2];    // Kalman filter gains
-	const int GYRO_SCALE = 1;
-	const int DT = 1;
+	#define GYRO_SCALE 1
+	#define DT 1
 
 	/*
 	 * Q is a 2x2 matrix of the covariance of the process noise. Because we
