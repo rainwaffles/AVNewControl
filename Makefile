@@ -1,8 +1,8 @@
 VERSION = 2015-10
 
-all: clean pid
+all: pid
 
 pid:
-	g++ Kalman.cpp pid_library.cpp main.cpp -o pid 
+	g++ ./src/Kalman.cpp ./src/pid_library.cpp ./src/main.cpp -o pid 
 clean:
 	rm -f pid
