@@ -1,5 +1,5 @@
-#ifndef Kalman_h
-#define Kalman_h
+#ifndef KALMAN_H
+#define KALMAN_H
 
 
 /*
