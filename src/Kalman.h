@@ -1,6 +1,9 @@
 #ifndef KALMAN_H
 #define KALMAN_H
 
+#define GYRO_SCALE      1/14.375f  //degrees per LSB
+#define SAMPLES_PER_SECOND 70  //measured in Hz
+#define DT 1.0f/SAMPLES_PER_SECOND
 
 /*
  * Kalman filters are a "sensor fusion" filter, combining orientation data from
