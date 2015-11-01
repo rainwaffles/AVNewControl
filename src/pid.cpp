@@ -1,14 +1,19 @@
-//Template for what a pid would look like, basically copied from existing AVNavControl
 #include "pid.h"
 
 Kalman kPitch;
 Kalman kRoll;
+
+float roll, pitch, yaw, depth, accX, accY;
+
+float fRoll, fPitch, fYaw, fDepth, fAccX, fAccY;
 
 void reset_pid()
 {
 	pPitch->reset();
 	pHead->reset();
 	pDepth->reset();
+	
+	fRoll = fPitch = fYaw = fDepth = fAccX = fAccY = 0;
 }
 
 void init_pid()
@@ -41,9 +46,9 @@ void init_pid()
 	pHead->setScale(1.0f/180);
 	pDepth->setScale(1.0f/3);
 	
-	pPitch->setDT(DT);
-	pHead->setDT(DT);
-	pDepth->setDT(DT);
+	pPitch->setDt(DT);
+	pHead->setDt(DT);
+	pDepth->setDt(DT);
 	
 	//Double check this
 	pPitch->setBias(0.0f);
@@ -62,12 +67,13 @@ void init_pid()
 
 void do_pid()
 {
-	float pVal = kPitch.calculate();
-	float rVal = kRoll.calculate();
-	
-	float pPid = pPitch->update();
-	float hPid = pHead->update();
-	float dPid = pDepth->update();
+	float pVal = pitch;//kPitch.calculate();
+	float rVal = roll;//kRoll.calculate();
+	float heading = yaw;	
+
+	float pPid = pPitch->update(pVal, 0.0f);
+	float hPid = pHead->update(heading, desHead);
+	float dPid = pDepth->update(depth, desDepth);
 	
 	update_motors(pPid, hPid, dPid);
 }
@@ -75,9 +81,19 @@ void do_pid()
 void update_motors(float pPid, float hPid, float dPid)
 {
 	
+	std::cout << pPid << " " << hPid << " " << dPid << std::endl;
 }
 
-void update_data()
+int main()
 {
-	
+	desHead = 15;
+	desDepth = 50;
+	desPower = 100;
+	desStrafe = 10;
+	init_pid();
+	while(true)
+	{
+		std::cin >> roll >> pitch >> yaw >> depth >> accX >> accY;
+		do_pid();
+	}
 }
