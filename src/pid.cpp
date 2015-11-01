@@ -1,5 +1,7 @@
 //Template for what a pid would look like, basically copied from existing AVNavControl
 #include "pid.h"
+#include "motor.h"
+#include "simulator.cpp"
 
 Kalman kPitch;
 Kalman kRoll;
@@ -13,6 +15,12 @@ void reset_pid()
 
 void init_pid()
 {
+	//this is actually new and created by me; don't remove it; you know this is recent because for some reason
+	//our forefathers never actually bothered to comment any of their code
+	//sets inputs and motor outputs to 0
+	sim_input.fill(0);
+	motorPower.fill(0);
+
 	if(pPitch != NULL)
 	{
 		delete pPitch;

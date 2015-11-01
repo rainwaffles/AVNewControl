@@ -1,5 +1,0 @@
-
-int* simulate(int motors[])
-{
-
-}
