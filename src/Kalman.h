@@ -1,9 +1,9 @@
 #ifndef KALMAN_H
 #define KALMAN_H
 
-#define GYRO_SCALE      1/14.375f  //degrees per LSB
-#define SAMPLES_PER_SECOND 70  //measured in Hz
-#define DT 1.0f/SAMPLES_PER_SECOND
+const float GYRO_SCALE = 1/14.375f;  //degrees per LSB
+const float SAMPLES_PER_SECOND = 70;  //measured in Hz
+const float DT = 1.0f/SAMPLES_PER_SECOND;
 
 /*
  * Kalman filters are a "sensor fusion" filter, combining orientation data from
@@ -29,8 +29,6 @@ private:
 	P[2][2],    // covariance
 	E,          // error estimate
 	gain[2];    // Kalman filter gains
-	#define GYRO_SCALE 1
-	#define DT 1
 
 	/*
 	 * Q is a 2x2 matrix of the covariance of the process noise. Because we
