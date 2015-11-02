@@ -1,10 +1,10 @@
-float simInput[5];
-const int X_ANGLE = 0;
-const int Y_ANGLE = 1;
-const int Z_ANGLE = 2;
-const int X_ACCEL = 3;
-const int Y_ACCEL = 4;
+//Array simInput simulates our expected inputs from Angle in degrees and position in meters.
+float simInput[6];
+//enmerating angles and stuff
+enum angles {X_ANGLE, Y_ANGLE, Z_ANGLE, X_POS, Y_POS, Z_POS};
 void update();
-float calculateZAngle();
-void output();
+//intializes calculation functions
+float calculateZAngle(), calculateXAngle(), calculateYAngle(), calculateZPos(), calculateXPos(), calculateYPos();
+//intializes overarching functions
+void output(), update();
 
