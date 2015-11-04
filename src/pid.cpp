@@ -1,6 +1,4 @@
 #include "pid.h"
-#include "motor.h"
-#include "simulator.cpp"
 
 Kalman kPitch;
 Kalman kRoll;
@@ -8,6 +6,8 @@ Kalman kRoll;
 float roll, pitch, yaw, depth, accX, accY;
 
 float fRoll, fPitch, fYaw, fDepth, fAccX, fAccY;
+
+int motorPowers[9];
 
 void reset_pid()
 {
@@ -20,12 +20,6 @@ void reset_pid()
 
 void init_pid()
 {
-	//this is actually new and created by me; don't remove it; you know this is recent because for some reason
-	//our forefathers never actually bothered to comment any of their code
-	//sets inputs and motor outputs to 0
-	sim_input.fill(0);
-	motorPower.fill(0);
-
 	if(pPitch != NULL)
 	{
 		delete pPitch;
@@ -88,8 +82,16 @@ void do_pid()
 
 void update_motors(float pPid, float hPid, float dPid)
 {
-	
-	std::cout << pPid << " " << hPid << " " << dPid << std::endl;
+	motorPowers[SRGE_L] = desPower + hPid;
+	motorPowers[SRGE_R] = desPower - hPid;
+	motorPowers[DIAG_L] = desStrafe;
+	motorPowers[DIAG_R] = -desStrafe;
+	motorPowers[STRAFE] = desStrafe;
+	motorPowers[VERT_FL] = dPid - pPid;
+	motorPowers[VERT_FR] = dPid - pPid;
+	motorPowers[VERT_BL] = dPid + pPid;
+	motorPowers[VERT_BR] = dPid + pPid;
+	std::cout << motorPowers[VERT_FL] << " " << motorPowers[VERT_FR] << " " << motorPowers[VERT_BR] << " " << motorPowers[VERT_BL] << " " << motorPowers[DIAG_L] << " " << motorPowers[DIAG_R] << " " << motorPowers[SRGE_L] << " " << motorPowers[SRGE_R] << " " << motorPowers[STRAFE] << std::endl;
 }
 
 int main()
@@ -99,9 +101,14 @@ int main()
 	desPower = 100;
 	desStrafe = 10;
 	init_pid();
-	while(true)
+	std::ofstream log;
+	log.open("log.txt");
+	std::cout << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << std::endl;
+	for(int i = 0; i < 10; i++)
 	{
 		std::cin >> roll >> pitch >> yaw >> depth >> accX >> accY;
+		log << roll << pitch << yaw << depth << accX << accY;
 		do_pid();
 	}
+	log.close();
 }

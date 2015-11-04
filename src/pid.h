@@ -2,6 +2,7 @@
 #define PID_H
 
 #include <iostream>
+#include <fstream>
 #include "Kalman.h"
 #include "pid_library.h"
 
@@ -18,6 +19,19 @@ const float HEAD_KD = 0.25f;
 const float DEPTH_KP = 1.0f;
 const float DEPTH_KI = 0.1f;
 const float DEPTH_KD = 0.2f;
+
+enum MOTOR
+{
+	SRGE_L,
+	SRGE_R,
+	DIAG_L,
+	DIAG_R,
+	VERT_FL,
+	VERT_FR,
+	VERT_BL,
+	VERT_BR,
+	STRAFE
+};
 
 //Info about pitch heading depth acceleration etc
 

@@ -46,7 +46,7 @@ void update()
 void output()
 {
 	//'locks in' results and displays results and predicted effects/rotations
-	std::cout << " Z Angle: " << simInput[Z_ANGLE] << " X Angle: " << simInput[X_ANGLE] << " Y Angle: " << simInput[Y_ANGLE];
+	std::cout << simInput[Y_ANGLE] << " " << simInput[X_ANGLE] << " " << simInput[Z_ANGLE] << " " << " " << " " << 50 << " " << 0 << " " << 0 << std::endl;
 } 
 int main()
 {
@@ -54,7 +54,7 @@ int main()
 	memset(simInput , 0, sizeof(int) * 9);
 	while(true)
 	{
-		std::cout <<  " \n Input motor variables manually .\n" <<" VERT_FL, VERT_FR, VERT_BR, VERT_BL, DIAG_L, DIAG_R, SRGE_L, SRGE_R, STRAFE \n";
+		//std::cout <<  " \n Input motor variables manually .\n" <<" VERT_FL, VERT_FR, VERT_BR, VERT_BL, DIAG_L, DIAG_R, SRGE_L, SRGE_R, STRAFE \n";
 		std::cin >> motorPower[VERT_FL] >> motorPower[VERT_FR] >> motorPower[VERT_BR] >> motorPower[VERT_BL]>> motorPower[DIAG_L] >> motorPower[DIAG_R] >> motorPower[SRGE_L] >> motorPower[SRGE_R] >> motorPower[STRAFE];
 		update();
 		output();	
