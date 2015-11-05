@@ -104,7 +104,7 @@ int main()
 	std::ofstream log;
 	log.open("log.txt");
 	std::cout << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << std::endl;
-	for(int i = 0; i < 10; i++)
+	while(true)
 	{
 		std::cin >> roll >> pitch >> yaw >> depth >> accX >> accY;
 		log << roll << pitch << yaw << depth << accX << accY;

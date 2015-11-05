@@ -59,7 +59,7 @@ float calculateZPos()
 	//divide by a constant to estimate acceleration better
 	ZAccel = (motorPower[VERT_FL] + motorPower[VERT_FR] + motorPower[VERT_BR] + motorPower[VERT_BL]) * (4/512);
 	ZVelocity += ZAccel;
-	std::cout << " Z Accel: " << ZAccel << " Z Velocity: " << ZVelocity;
+	//std::cout << " Z Accel: " << ZAccel << " Z Velocity: " << ZVelocity;
 	return simInput[Z_POS] + ZVelocity;
 }	
 
@@ -69,7 +69,7 @@ float calculateXPos()
 {
 	//estimated acceleration: .5 m/s/s at full thrust
 	//divide by a constant to estimate acceleration better
-	XAccel = ((SRGE_L + SRGE_R) + (DIAG_L/2) + (DIAG_R/2))/64;
+	XAccel = ((motorPower[SRGE_L] + motorPower[SRGE_R]) + (motorPower[DIAG_L]/2) + (motorPower[DIAG_R]/2))/64;
 	XVelocity += XAccel;
 	return simInput[X_POS] + XVelocity;
 }
@@ -79,7 +79,7 @@ float YAccel;
 float calculateYPos()
 {
 	//divide by a constant to estimate acceleration better
-	YAccel = STRAFE/1024;
+	YAccel = motorPower[STRAFE]/1024;
 	YVelocity += YAccel;
 	return simInput[Y_POS] + YVelocity;
 }
@@ -99,7 +99,7 @@ void update()
 void output()
 {
 	//'locks in' results and displays results and predicted effects/rotations
-	std::cout << simInput[Y_ANGLE] << " " << simInput[X_ANGLE] << " " << simInput[Z_ANGLE] << " " << " " << " " << 50 << " " << 0 << " " << 0 << std::endl;
+	std::cout << simInput[Y_ANGLE] << " " << simInput[X_ANGLE] << " " << simInput[Z_ANGLE] << " " << 50 << " " << simInput[X_POS] << " " << simInput[Y_POS] << std::endl;
 	//outputs results
 	//remove the 'angle' markers when we have a program that can work with this one
 	/*
