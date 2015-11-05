@@ -50,7 +50,7 @@ float calculateYAngle()
 
 //velocity is the sum of all past acceleration
 //position is the sum of all past velocity
-//
+//    
 float ZVelocity;
 float ZAccel;
 float calculateZPos()
