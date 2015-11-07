@@ -30,50 +30,52 @@ void init_pid()
 	pHead  = new PID();
 	pDepth = new PID();
 	
+	//These gains change how quickly the pid can zero in on the right value.
+	//Look up pid gains if you need to know.
 	pPitch->setGains(PITCH_KP, PITCH_KI, PITCH_KD);
 	pHead->setGains(HEAD_KP, HEAD_KI, HEAD_KD);
 	pDepth->setGains(DEPTH_KP, DEPTH_KI, DEPTH_KD);
 	
-	//Double check this
+	//Don't try to overcompensate if the sub is too far off
 	pPitch->setBounds(-30,30);
 	pHead->setBounds(-180,180);
 	pDepth->setBounds(-6,6);
 	
+	//The point that the pid is trying to reach
 	pPitch->setSetpoint(0.0f);
 	pHead->setSetpoint(desHead);  
 	pDepth->setSetpoint(desDepth);
 	
-	//Double check this
+	//I have no idea
 	pPitch->setScale(100.0f/35);
 	pHead->setScale(1.0f/180);
 	pDepth->setScale(1.0f/3);
 	
+	//Mumble mumble pid thing
 	pPitch->setDt(DT);
 	pHead->setDt(DT);
 	pDepth->setDt(DT);
-	
-	//Double check this
 	pPitch->setBias(0.0f);
 	pHead->setBias(0.0f);
 	pDepth->setBias(0.0f);
-	
-	//Double check this
 	pPitch->setIntegralRegion(-1000.0f/35,1000.0f/35);
 	pHead->setIntegralRegion(1.0f/6,1.0f/6);
 	pDepth->setIntegralRegion(-12.0f, 8.0f);
 	
-	//Calibrate, set all that stuff
+	//TODO: Calibrate, set all that stuff
 	
 	reset_pid();
 }
 
 void do_pid()
 {
-	float pVal = pitch;//kPitch.calculate();
-	float rVal = roll;//kRoll.calculate();
-	float heading = yaw;	
-
-	float pPid = pPitch->update(pVal, 0.0f);
+	//TODO: Use Kalman filter for this stuff
+	float pVal = kPitch(pitch, );
+	float rVal = roll;
+	float heading = yaw; //TODO: Figure out if this is right (it isn't) and how heading works
+	
+	//TODO: This year we might need to control pitch somewhat for torpedo task
+	float pPid = pPitch->update(pVal, 0.0f); 
 	float hPid = pHead->update(heading, desHead);
 	float dPid = pDepth->update(depth, desDepth);
 	
@@ -82,11 +84,12 @@ void do_pid()
 
 void update_motors(float pPid, float hPid, float dPid)
 {
+	//This is roughly how it should work
 	motorPowers[SRGE_L] = desPower + hPid;
 	motorPowers[SRGE_R] = desPower - hPid;
-	motorPowers[DIAG_L] = desStrafe;
-	motorPowers[DIAG_R] = -desStrafe;
-	motorPowers[STRAFE] = desStrafe;
+	motorPowers[DIAG_L] = -desStrafe;
+	motorPowers[DIAG_R] = desStrafe;
+	motorPowers[STRAFE] = -desStrafe;
 	motorPowers[VERT_FL] = dPid - pPid;
 	motorPowers[VERT_FR] = dPid - pPid;
 	motorPowers[VERT_BL] = dPid + pPid;
@@ -96,19 +99,27 @@ void update_motors(float pPid, float hPid, float dPid)
 
 int main()
 {
+	//Just for testing
 	desHead = 15;
 	desDepth = 50;
 	desPower = 100;
 	desStrafe = 10;
+	//Pretty self-explanatory
 	init_pid();
+	//Just to record what's going on
 	std::ofstream log;
 	log.open("log.txt");
+	//Get initial state of sub from simulator/controller
 	std::cout << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << std::endl;
 	while(true)
 	{
+		//Get the state of the sub
 		std::cin >> roll >> pitch >> yaw >> depth >> accX >> accY;
-		log << roll << pitch << yaw << depth << accX << accY;
+		//Record state for fun
+		log << roll << " " << pitch << " " << yaw << " " << depth << " " << accX << " " << accY << std::endl;
+		//Use the info we got to update the pid and output the motor configurations
 		do_pid();
 	}
+	//What else would this do
 	log.close();
 }
