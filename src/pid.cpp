@@ -70,7 +70,7 @@ void init_pid()
 void do_pid()
 {
 	//TODO: Use Kalman filter for this stuff
-	float pVal = kPitch(pitch, );
+	float pVal = pitch;
 	float rVal = roll;
 	float heading = yaw; //TODO: Figure out if this is right (it isn't) and how heading works
 	
