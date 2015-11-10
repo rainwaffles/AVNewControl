@@ -1,126 +1,119 @@
-#include "simulator.h"
-#include "motor.h"
+#include "simulator.hpp"
 #include <iostream>
 #include <string.h>
-//this holds the inputs for varius IMU inputs
-//time to make up some value!!
-//////////////////////////////////////////////////////
-//IMPORTANT: DEAR FUTURE AVBOTZ MEMBER,
-//motorPower is found in motor.h
-//	it contains all desired motor settings
-//	it has 9 values, all enumerated
-//	SRGE_L, SRGE_R, DIAG_L, DIAG_R, VERT_FL, VERT_FR, VERT_BL, VERT_BRSTRAFE
-//	in that order from 0 to 8
-//simInput is found int simulator.h
-//	it contains all simulated IMU inputs
-//	it has 6 values, all enumerated
-//	X_ANGLE, Y_ANGLE, Z_ANGLE, X_POS, Y_POS, Z_POS
-//	in that order, from 0 to 5
-//
-//I hope this will aid you in your future endeavors. You're welcome
-/////////////////////////////////////////////////////////
-float calculateZAngle()
+#include <vector>
+
+/*
+ * Update position, anglular orientation, velocity, and angular velocity of object
+ * Accepts current state of variables above, plus forces acting on object, mass of object, inertia tensor, and time difference from last update
+ * Angle orientation is input as 3x3 rotation matrix
+ * Forces are a pair of (force, relative location), location (relative to center of mass) is used to calculate torque
+ * Inertia tensor is 3x3 matrix(google it; different from moment of inertia usually learned about in early physics)
+ */
+void updatePos(arma::vec& pos, arma::mat& ang, arma::vec& vel, arma::vec& avel, std::vector<std::pair<arma::vec, arma::vec> > forces, double mass, arma::mat inert, long long td)
 {
-	//assuming it updates every 1/4 of a second
-	//angles/second for diag and strafe motors 
-	//positive clockwise
-	int diagTotal = ((motorPower[DIAG_L] - motorPower[DIAG_R]) / 510) * 15;
-	int strafeTotal = (motorPower[STRAFE]/255) * 8;
-	return ( simInput[Z_ANGLE] + diagTotal + strafeTotal);
+	arma::vec oldV(vel);
+	arma::vec oldAV(avel);
+
+	// add fluid resistance
+	// TODO: make resistance more realistic
+	double factor = pow(0.9998, td);
+	vel = factor*vel;
+	avel = factor*avel;
+	arma::vec torque = {0, 0, 0};
+	double timeDiff = td/1000.0;
+	// update linear velocity and calculate torque
+	for (int i = 0; i < forces.size(); i++)
+	{
+		// get this from equations v = v0+at and F=ma
+		vel += forces[i].first*timeDiff / mass;
+		// get this from equation T = r x F
+		torque += arma::cross(forces[i].second, forces[i].first*timeDiff);
+	}
+
+	// inertia tensor is changed when an object rotates relative to the position axes, so it must be updated
+	// transform axes to find relative axes of rotated sub
+	arma::vec rotI = ang.i()*axisI;
+	arma::vec rotJ = ang.i()*axisJ;
+	arma::vec rotK = ang.i()*axisK;
+
+	arma::mat axisD = {{rotI[0], rotJ[0], rotK[0]},
+			{rotI[1], rotJ[1], rotK[1]},
+			{rotI[2], rotJ[2], rotK[2]}};
+	arma::mat inertia = axisD*inert*axisD.t();
+
+	// get new angular velocity based on old
+	// equation is euler's second law of motion
+	// T = d(Iw)/dt
+			// Tt = Iw 
+			// I^-1(Tt
+	avel += inertia.i()*(torque*timeDiff);
+
+	// get average angular velocity tensor
+	arma::mat avelTens = {{0, -(avel[2]+oldAV[2])/2, (avel[1]+oldAV[1])/2},
+				{(avel[2]+oldAV[2])/2, 0, -(avel[0]+oldAV[0])/2},
+				{-(avel[1]+oldAV[1])/2, (avel[0]+oldAV[0])/2, 0}};
+	// this is from solving the diff equation dR/dt = W*R
+	// it is more accurate over long time differences than individually rotating about each axis
+	ang = arma::expmat(avelTens*timeDiff)*ang;
+
+	pos += (oldV + vel)/2.0;
 }
 
-float calculateXAngle()
-{
-	//assuming it updates every 1/4 of a second
-	//angles/second for diag and strafe motors 
-	//positive when front points up
-	int frontTotal = (motorPower[VERT_FL] + motorPower[VERT_FR]) / 40 ;
-	int backTotal = (motorPower[VERT_BL] + motorPower[VERT_BR]) / 40;
-	return (simInput[X_ANGLE] + (backTotal - frontTotal));
-}
-
-float calculateYAngle()
-{
-	//assuming it updates every 1/4 of a second
-	//angles/second for diag and strafe motors 
-	int leftTotal = (motorPower[VERT_FL] + motorPower[VERT_BL])/40;
-	int rightTotal = (motorPower[VERT_FR] + motorPower[VERT_BR])/40;
-	return (simInput[Y_ANGLE] + (leftTotal - rightTotal));
-}
-
-//velocity is the sum of all past acceleration
-//position is the sum of all past velocity
-//    
-float ZVelocity;
-float ZAccel;
-float calculateZPos()
-{
-	//estimated acceleration: .5 m/s/s at full thrust
-	//divide by a constant to estimate acceleration better
-	ZAccel = (motorPower[VERT_FL] + motorPower[VERT_FR] + motorPower[VERT_BR] + motorPower[VERT_BL]) * (4/512);
-	ZVelocity += ZAccel;
-	//std::cout << " Z Accel: " << ZAccel << " Z Velocity: " << ZVelocity;
-	return simInput[Z_POS] + ZVelocity;
-}	
-
-float XVelocity;
-float XAccel;
-float calculateXPos()
-{
-	//estimated acceleration: .5 m/s/s at full thrust
-	//divide by a constant to estimate acceleration better
-	XAccel = ((motorPower[SRGE_L] + motorPower[SRGE_R]) + (motorPower[DIAG_L]/2) + (motorPower[DIAG_R]/2))/64;
-	XVelocity += XAccel;
-	return simInput[X_POS] + XVelocity;
-}
-
-float YVelocity;
-float YAccel;
-float calculateYPos()
-{
-	//divide by a constant to estimate acceleration better
-	YAccel = motorPower[STRAFE]/1024;
-	YVelocity += YAccel;
-	return simInput[Y_POS] + YVelocity;
-}
-
-void update()
-{
-	// sequences functions 
-	// updates all input and output values
-	simInput[Z_ANGLE] = calculateZAngle();
-	simInput[X_ANGLE] = calculateXAngle();
-	simInput[Y_ANGLE] = calculateYAngle();
-	simInput[Z_POS] = calculateZPos();
-	simInput[X_POS] = calculateXPos();
-	simInput[Y_POS] = calculateYPos();
-	
-}
 void output()
 {
-	//'locks in' results and displays results and predicted effects/rotations
-	std::cout << simInput[Y_ANGLE] << " " << simInput[X_ANGLE] << " " << simInput[Z_ANGLE] << " " << 50 << " " << simInput[X_POS] << " " << simInput[Y_POS] << std::endl;
-	//outputs results
-	//remove the 'angle' markers when we have a program that can work with this one
-	/*
-	std::cout << " Z Angle: " << simInput[Z_ANGLE] << " X Angle: " << simInput[X_ANGLE] << " Y Angle: " << simInput[Y_ANGLE];
-	std::cout << " Z Pos: " << simInput[Z_POS] << " X Pos: " << simInput[X_POS] << " Y Pos: " << simInput[Y_POS];
-	*/
+	// find pitch roll yaw from rotation matrix
+	arma::vec ypr = {atan2(angle.at(1,0), angle.at(0,0)), atan2(-angle.at(2,0),sqrt(angle.at(1,0)*angle.at(1,0)+angle.at(0,0)*angle.at(0,0))), atan2(angle.at(2,1), angle.at(2,2))};
+	std::cout<<ypr<<"\n"<<posit[2]<<" "<<velo[0]<<" "<<velo[1]<<"\n";
+	std::cout<<"Pos\n"<<posit<<"\n\n";
+	std::cout<<"Ang\n"<<ypr<<"\n"<<angle<<"\n\n";
+	std::cout<<"Vel\n"<<velo<<"\n\n";
+	std::cout<<"Ang Vel\n"<<avelo<<"\n\n\n";
 } 
 int main()
 {
-	//initializes motors and inputs at zero
-	memset(motorPower, 0, sizeof(int) * 9);
-	memset(simInput , 0, sizeof(int) * 9);
-	XVelocity = 0;
-	YVelocity = 0;
-	ZVelocity = 0;
+	// initializes motor position and directions
+	// order is VERT_FL, VERT_FR, VERT_BR, VERT_BL, DIAG_L, DIAG_R, SRGE_L, SRGE_R, STRAFE
+	motorPos[0] = {1, -1, 0};
+	motorPos[1] = {1, 1, 0};
+	motorPos[2] = {-1, 1, 0};
+	motorPos[3] = {-1, -1, 0};
+	motorPos[4] = {0.5, -1, 0};
+	motorPos[5] = {0.5, 1, 0};
+	motorPos[6] = {0, -1, 0};
+	motorPos[7] = {0, 1, 0};
+	motorPos[8] = {-1, 0, 0};
+
+	// vector with direction of motor and magnitude of motor force
+	motorDir[0] = {0, 0, 1};
+	motorDir[1] = {0, 0, 1};
+	motorDir[2] = {0, 0, 1};
+	motorDir[3] = {0, 0, 1};
+	motorDir[4] = {0.866, 0.5, 0};
+	motorDir[5] = {0.866, -0.5, 0};
+	motorDir[6] = {1, 0, 0};
+	motorDir[7] = {1, 0, 0};
+	motorDir[8] = {0, 1, 0};
 	while(true)
 	{
-		//std::cout <<  " \n Input motor variables manually .\n" <<" VERT_FL, VERT_FR, VERT_BR, VERT_BL, DIAG_L, DIAG_R, SRGE_L, SRGE_R, STRAFE \n";
-		//manual input; remove when we actually have a program that can work with this one
-		std::cin >> motorPower[VERT_FL] >> motorPower[VERT_FR] >> motorPower[VERT_BR] >> motorPower[VERT_BL]>> motorPower[DIAG_L] >> motorPower[DIAG_R] >> motorPower[SRGE_L] >> motorPower[SRGE_R] >> motorPower[STRAFE];
-		update();
+		// get forces/positions based on motor powers
+		std::vector<std::pair<arma::vec, arma::vec> > fList;
+		for (int i = 0; i < 9; i++)
+		{
+			std::cin >> motorPower[i];
+			// TODO: simulate counter spinning from the spin of motors
+			fList.push_back(std::pair<arma::vec, arma::vec>((motorPower[i]-100)*angle*motorDir[i], angle*motorPos[i]));
+		}
+		// add force of gravity/buoyancy
+		// TODO: simulate lift & other fluid forces
+		fList.push_back(std::pair<arma::vec, arma::vec>(axisK*subVol*fluidDen*gravity, angle*centOfVol));
+		fList.push_back(std::pair<arma::vec, arma::vec>(-(axisK*subMass*gravity), zeroV));
+		int time = 10;
+		std::cin >> time;
+		// calculate physics
+		updatePos(posit, angle, velo, avelo, fList, subMass, inertTens, time);
+
+		// print values
 		output();	
 	}
 }
