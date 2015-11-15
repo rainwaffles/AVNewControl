@@ -94,14 +94,14 @@ void update_motors(float pPid, float hPid, float dPid)
 	motorPowers[VERT_FR] = dPid - pPid;
 	motorPowers[VERT_BL] = dPid + pPid;
 	motorPowers[VERT_BR] = dPid + pPid;
-	std::cout << motorPowers[VERT_FL] << " " << motorPowers[VERT_FR] << " " << motorPowers[VERT_BR] << " " << motorPowers[VERT_BL] << " " << motorPowers[DIAG_L] << " " << motorPowers[DIAG_R] << " " << motorPowers[SRGE_L] << " " << motorPowers[SRGE_R] << " " << motorPowers[STRAFE] << std::endl;
+	std::cout << motorPowers[SRGE_L] << " " << motorPowers[SRGE_R] << " " << motorPowers[DIAG_L] << " " << motorPowers[DIAG_R] << " " << motorPowers[VERT_FL] << " " << motorPowers[VERT_FR] << " " << motorPowers[VERT_BL] << " " << motorPowers[VERT_BR] << " " << motorPowers[STRAFE] << " " << 20 << std::endl;
 }
 
 int main()
 {
 	//Just for testing
-	desHead = 15;
-	desDepth = 50;
+	desHead = 0;
+	desDepth = 0;
 	desPower = 100;
 	desStrafe = 10;
 	//Pretty self-explanatory
@@ -110,13 +110,13 @@ int main()
 	std::ofstream log;
 	log.open("log.txt");
 	//Get initial state of sub from simulator/controller
-	std::cout << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << std::endl;
+	std::cout << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << std::endl;
 	while(true)
 	{
 		//Get the state of the sub
-		std::cin >> roll >> pitch >> yaw >> depth >> accX >> accY;
+		std::cin >> yaw >> pitch >> roll >> depth >> accX >> accY;
 		//Record state for fun
-		log << roll << " " << pitch << " " << yaw << " " << depth << " " << accX << " " << accY << std::endl;
+		log << roll << "\t" << pitch << "\t" << yaw << "\t" << depth << "\t" << accX << "\t" << accY << std::endl;
 		//Use the info we got to update the pid and output the motor configurations
 		do_pid();
 	}

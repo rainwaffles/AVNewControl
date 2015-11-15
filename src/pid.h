@@ -13,8 +13,8 @@ const float PITCH_KI = 0.005f;
 const float PITCH_KD = 0.007f;
 
 const float HEAD_KP = 4.0f;
-const float HEAD_KI = 0.75f;
-const float HEAD_KD = 0.25f;
+const float HEAD_KI = 0.3f;
+const float HEAD_KD = 0.1f;
  
 const float DEPTH_KP = 1.0f;
 const float DEPTH_KI = 0.1f;

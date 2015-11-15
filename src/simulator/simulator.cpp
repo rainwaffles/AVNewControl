@@ -17,7 +17,7 @@ void updatePos(arma::vec& pos, arma::mat& ang, arma::vec& vel, arma::vec& avel, 
 
 	// add fluid resistance
 	// TODO: make resistance more realistic
-	double factor = pow(0.9998, td);
+	double factor = pow(0.9996, td);
 	vel = factor*vel;
 	avel = factor*avel;
 	arma::vec torque = {0, 0, 0};
@@ -65,11 +65,13 @@ void output()
 	// find pitch roll yaw from rotation matrix
 	arma::vec ypr = {atan2(angle.at(1,0), angle.at(0,0)), atan2(-angle.at(2,0),sqrt(angle.at(1,0)*angle.at(1,0)+angle.at(0,0)*angle.at(0,0))), atan2(angle.at(2,1), angle.at(2,2))};
 	std::cout<<ypr<<"\n"<<posit[2]<<" "<<velo[0]<<" "<<velo[1]<<"\n";
+	/*
 	std::cout<<"Pos\n"<<posit<<"\n\n";
 	std::cout<<"Ang\n"<<ypr<<"\n"<<angle<<"\n\n";
 	std::cout<<"Vel\n"<<velo<<"\n\n";
 	std::cout<<"Ang Vel\n"<<avelo<<"\n\n\n";
-} 
+	*/
+}
 int main()
 {
 	// initializes motor position and directions
