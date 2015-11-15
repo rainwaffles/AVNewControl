@@ -9,6 +9,8 @@ float fRoll, fPitch, fYaw, fDepth, fAccX, fAccY;
 
 int motorPowers[9];
 
+std::ofstream log;
+
 void reset_pid()
 {
 	pPitch->reset();
@@ -37,8 +39,8 @@ void init_pid()
 	pDepth->setGains(DEPTH_KP, DEPTH_KI, DEPTH_KD);
 	
 	//Don't try to overcompensate if the sub is too far off
-	pPitch->setBounds(-30,30);
-	pHead->setBounds(-180,180);
+	pPitch->setBounds(-30.0f/180,30.0f/180);
+	pHead->setBounds(-1,1);
 	pDepth->setBounds(-6,6);
 	
 	//The point that the pid is trying to reach
@@ -48,7 +50,7 @@ void init_pid()
 	
 	//I have no idea
 	pPitch->setScale(100.0f/35);
-	pHead->setScale(1.0f/180);
+	pHead->setScale(1);
 	pDepth->setScale(1.0f/3);
 	
 	//Mumble mumble pid thing
@@ -95,6 +97,8 @@ void update_motors(float pPid, float hPid, float dPid)
 	motorPowers[VERT_BL] = dPid + pPid;
 	motorPowers[VERT_BR] = dPid + pPid;
 	std::cout << motorPowers[SRGE_L] << " " << motorPowers[SRGE_R] << " " << motorPowers[DIAG_L] << " " << motorPowers[DIAG_R] << " " << motorPowers[VERT_FL] << " " << motorPowers[VERT_FR] << " " << motorPowers[VERT_BL] << " " << motorPowers[VERT_BR] << " " << motorPowers[STRAFE] << " " << 20 << std::endl;
+	log << motorPowers[SRGE_L] << "\t" << motorPowers[SRGE_R] << "\t" << motorPowers[DIAG_L] << "\t" << motorPowers[DIAG_R] << "\t" << motorPowers[VERT_FL] << "\t" << motorPowers[VERT_FR] << "\t" << motorPowers[VERT_BL] << "\t" << motorPowers[VERT_BR] << "\t" << motorPowers[STRAFE] << "\t" << 20 << std::endl;
+	
 }
 
 int main()
@@ -103,11 +107,10 @@ int main()
 	desHead = 0;
 	desDepth = 0;
 	desPower = 100;
-	desStrafe = 10;
+	desStrafe = 0;
 	//Pretty self-explanatory
 	init_pid();
 	//Just to record what's going on
-	std::ofstream log;
 	log.open("log.txt");
 	//Get initial state of sub from simulator/controller
 	std::cout << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << " " << 0 << std::endl;
@@ -116,7 +119,7 @@ int main()
 		//Get the state of the sub
 		std::cin >> yaw >> pitch >> roll >> depth >> accX >> accY;
 		//Record state for fun
-		log << roll << "\t" << pitch << "\t" << yaw << "\t" << depth << "\t" << accX << "\t" << accY << std::endl;
+		log << roll << "\t" << pitch << "\t" << yaw << "\t" << depth << "\t\t" << accX << "\t" << accY;
 		//Use the info we got to update the pid and output the motor configurations
 		do_pid();
 	}
