@@ -107,8 +107,8 @@ void update_motors(float pPid, float hPid, float dPid)
 	motorPowers[VERT_BR] = dPid + pPid;
 	if(SIM)
 	{
-		std::cout << motorPowers[SRGE_L] << " " << motorPowers[SRGE_R] << " " << motorPowers[DIAG_L] << " " << motorPowers[DIAG_R] << " " << motorPowers[VERT_FL] << " " << motorPowers[VERT_FR] << " " << motorPowers[VERT_BL] << " " << motorPowers[VERT_BR] << " " << motorPowers[STRAFE] << " " << 20 << std::endl;
-		log << "\t" << motorPowers[SRGE_L] << "\t" << motorPowers[SRGE_R] << "\t" << motorPowers[DIAG_L] << "\t" << motorPowers[DIAG_R] << "\t" << motorPowers[VERT_FL] << "\t" << motorPowers[VERT_FR] << "\t" << motorPowers[VERT_BL] << "\t" << motorPowers[VERT_BR] << "\t" << motorPowers[STRAFE] << "\t" << 20 << std::endl;
+		std::cout << motorPowers[VERT_FL] << " " << motorPowers[VERT_FR] << " " << motorPowers[VERT_BR] << " " << motorPowers[VERT_BL] << " " << motorPowers[DIAG_L] << " " << motorPowers[DIAG_R] << " " << motorPowers[SRGE_L] << " " << motorPowers[SRGE_R] << " " << motorPowers[STRAFE] << " " << 20 << std::endl;
+		log << "\t" << motorPowers[VERT_FL] << "\t" << motorPowers[VERT_FR] << "\t" << motorPowers[VERT_BR] << "\t" << motorPowers[VERT_BL] << "\t" << motorPowers[DIAG_L] << "\t" << motorPowers[DIAG_R] << "\t" << motorPowers[SRGE_L] << "\t" << motorPowers[SRGE_R] << "\t" << motorPowers[STRAFE] << "\t" << 20 << std::endl;
 	}
 }
 
@@ -122,6 +122,7 @@ int main()
 	attitude_desired[YAW]   = 0;
 	desdepth = 10;
 	surge = 0;
+	strafe = 0;
 
 	if(SIM)
 	{
