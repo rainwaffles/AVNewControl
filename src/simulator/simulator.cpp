@@ -28,25 +28,16 @@ void updatePos(arma::vec& pos, arma::mat& ang, arma::vec& vel, arma::vec& avel, 
 		// get this from equations v = v0+at and F=ma
 		vel += forces[i].first*timeDiff / mass;
 		// get this from equation T = r x F
-		torque += arma::cross(forces[i].second, forces[i].first*timeDiff);
+		torque += arma::cross(forces[i].second, forces[i].first);
 	}
 
 	// inertia tensor is changed when an object rotates relative to the position axes, so it must be updated
 	// transform axes to find relative axes of rotated sub
-	arma::vec rotI = ang.i()*axisI;
-	arma::vec rotJ = ang.i()*axisJ;
-	arma::vec rotK = ang.i()*axisK;
-
-	arma::mat axisD = {{rotI[0], rotJ[0], rotK[0]},
-			{rotI[1], rotJ[1], rotK[1]},
-			{rotI[2], rotJ[2], rotK[2]}};
+	arma::mat axisD = ang.i();
 	arma::mat inertia = axisD*inert*axisD.t();
 
 	// get new angular velocity based on old
 	// equation is euler's second law of motion
-	// T = d(Iw)/dt
-			// Tt = Iw 
-			// I^-1(Tt
 	avel += inertia.i()*(torque*timeDiff);
 
 	// get average angular velocity tensor
@@ -65,12 +56,14 @@ void output()
 	// find pitch roll yaw from rotation matrix
 	arma::vec ypr = {atan2(angle.at(1,0), angle.at(0,0)), atan2(-angle.at(2,0),sqrt(angle.at(1,0)*angle.at(1,0)+angle.at(0,0)*angle.at(0,0))), atan2(angle.at(2,1), angle.at(2,2))};
 	std::cout<<ypr<<"\n"<<posit[2]<<" "<<velo[0]<<" "<<velo[1]<<"\n";
+	
 	/*
 	std::cout<<"Pos\n"<<posit<<"\n\n";
 	std::cout<<"Ang\n"<<ypr<<"\n"<<angle<<"\n\n";
 	std::cout<<"Vel\n"<<velo<<"\n\n";
 	std::cout<<"Ang Vel\n"<<avelo<<"\n\n\n";
 	*/
+	
 }
 int main()
 {
@@ -104,7 +97,7 @@ int main()
 		{
 			std::cin >> motorPower[i];
 			// TODO: simulate counter spinning from the spin of motors
-			fList.push_back(std::pair<arma::vec, arma::vec>((motorPower[i]-100)*angle*motorDir[i], angle*motorPos[i]));
+			fList.push_back(std::pair<arma::vec, arma::vec>((motorPower[i])*angle*motorDir[i], angle*motorPos[i]));
 		}
 		// add force of gravity/buoyancy
 		// TODO: simulate lift & other fluid forces
@@ -112,8 +105,14 @@ int main()
 		fList.push_back(std::pair<arma::vec, arma::vec>(-(axisK*subMass*gravity), zeroV));
 		int time = 10;
 		std::cin >> time;
-		// calculate physics
-		updatePos(posit, angle, velo, avelo, fList, subMass, inertTens, time);
+
+		// break up steps into smaller time differences to make linear acceleration while rotating more accurate
+		int tDiff = 1;
+		for (int i = 0; i < time; i+= tDiff)
+		{
+			// calculate physics
+			updatePos(posit, angle, velo, avelo, fList, subMass, inertTens, tDiff);
+		}
 
 		// print values
 		output();	
